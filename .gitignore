@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+
+# Large GMN data — re-fetchable from globalmeteornetwork.org (GitHub 100 MB limit / bloat)
+recreated/traj_summary_yearly_*.txt
+recreated/report/example_geminids/traj_summary_*.txt
+recreated/report/epochs/*/traj_summary_*.txt
+
+# Cached annual background (large binary; regenerated via --bg-cache)
+*.npz
+
+# Copyrighted journal article (not redistributable)
+Brown*.pdf
+
+# LaTeX build artefacts
+*.aux
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.toc
+*.out
+**/build.log
