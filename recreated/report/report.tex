@@ -486,13 +486,26 @@ solar-longitude suffix auto-discovered or pinned with
   \end{tabular}
 \end{table}
 
-\paragraph{Testing.} \texttt{make\_synth\_trajsummary.py} generates a synthetic
-trajectory-summary with planted showers to exercise the full
-parse$\to$wavelet$\to$maps$\to$maxlist chain offline. End-to-end validation against
-the reference set is done by comparing the maxlist of the \texttt{annual} run to
-GMN's \texttt{example.txt} (positions and \texttt{xsig} of the strong showers) and
-the rendered SCE map to the published PNG, as in Sections~\ref{sec:same}
-and~\ref{sec:diff}.
+\paragraph{Testing on real data.} All testing uses real GMN data. A fast smoke
+test is a single daily file in \texttt{self} mode (no yearly data needed), which
+produces both maps and a maxlist in seconds:
+\begin{lstlisting}
+python gmn_wavelet_maps.py --date 20250318      # or --file <daily.txt>
+\end{lstlisting}
+The full end-to-end check is the \texttt{annual} run on real radiants compared
+against GMN's real published product: the maxlist is compared with GMN's
+\texttt{original/example.txt} (positions and \texttt{xsig} of the strong showers,
+Section~\ref{sec:same}) and the rendered SCE map with the published PNG. Two
+further quantitative cross-checks confirm correctness on real data: the recovered
+shower radiants match the published catalogue radiants to $\lesssim 1^\circ$
+across six independent epochs (Section~\ref{sec:diff}), and the post-quality
+radiant count reproduces GMN's header value (NOrb${}=2585$ vs.\ $2574$). Running
+any other date is then a one-line change, e.g.:
+\begin{lstlisting}
+python gmn_wavelet_maps.py --date 20251214 \
+       --background annual --bg-file traj_summary_yearly_2025.txt \
+       --quality --bg-cache bg_2025.npz --out out
+\end{lstlisting}
 
 \section{Code availability and references}
 \label{sec:refs}
