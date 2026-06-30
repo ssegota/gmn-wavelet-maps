@@ -76,9 +76,12 @@ each speed --- the shower \emph{significance}, measured against how busy that sa
 patch of sky usually is over a whole year --- one in equatorial coordinates and
 one centred on the Sun's direction (so that showers sit in fixed places).
 Alongside the maps it writes a text table, the \emph{maxlist}, with one row per
-detected shower spot giving its position, speed, significance, the number of
-meteors that formed it, the mean orbit, and the associated shower name (for
-example ``EVI eta Virginids'').
+detected peak giving its position, speed, significance, the number of meteors
+that formed it, the mean orbit, and the associated shower name (for example
+``EVI eta Virginids''). The maxlist lists \emph{every} significant peak, not only
+catalogued showers: peaks with no catalogue match are included as well, and the
+\flag{--mark-unknown} option flags them as shower candidates --- both as a
+\texttt{UNK} tag in the table and as white ``?'' circles on the maps.
 
 \section{Methodology}
 \label{sec:method}
@@ -265,7 +268,13 @@ correctly named from the catalogue, together with much of the surrounding
 minor-shower complex. Table~\ref{tab:year} summarises the dominant maxima;
 Sections~\ref{sec:qua}--\ref{sec:gem} give both projections and the detected
 showers for each. The active region of the sky is completely different from one
-epoch to the next, exercising the full pipeline on independent data.
+epoch to the next, exercising the full pipeline on independent data. These maps
+were generated with \flag{--mark-unknown}, so significant peaks with no catalogue
+match are circled in white with a ``?'' as shower \emph{candidates} (and tagged
+\texttt{UNK} in the maxlists); the named coloured circles are catalogue
+associations. Most candidates are minor known showers absent from the public
+catalogue or sporadic-source fluctuations, but the flag makes any genuinely new
+concentration easy to spot.
 
 \begin{table}[H]
   \centering
@@ -478,6 +487,8 @@ solar-longitude suffix auto-discovered or pinned with
     \flag{--shot-frac}                 & 0.20   & shot-noise floor on $\sigma_\mathrm{year}$ ($\approx 1/N$)\\
     \flag{--rms-catalog}               & auto   & shower catalogue file(s)\\
     \flag{--ang-thr / --vg-thr}        & 3.0 / 10 & association thresholds (deg / \%)\\
+    \flag{--mark-unknown}              & off    & flag unmatched peaks as candidates (UNK + ``?'')\\
+    \flag{--candidate-min-xsig}        & 8.0    & min xsig to draw a candidate on the maps\\
     \flag{--min-xsig}                  & 3.0    & significance threshold for maxima\\
     \flag{--min-radiants}              & 10     & min radiants in a maximum's probe\\
     \flag{--max-labels}                & 6      & max shower labels drawn on the maps\\

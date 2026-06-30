@@ -183,7 +183,14 @@ a heavy, server‑scale computation; coarsen with `--step` for a faster look.
   10.3, BCO 9.89 vs 9.9).
 * On the maps, each named shower is circled **once** (the strongest maximum for
   that code above `--label-min-xsig`, at most `--max-labels`, strongest first);
-  the full maxlist still lists every maximum passing the r_cnt and σ filters.
+  the full maxlist always lists **every** maximum passing the r_cnt and σ filters,
+  including those with **no** catalogue match (left blank, as GMN does).
+* **Unknown / candidate showers.** `--mark-unknown` flags the unmatched but
+  significant peaks as shower candidates: they are tagged `UNK` in the maxlist's
+  Shower column (instead of blank) and the strongest ones (≥ `--candidate-min-xsig`,
+  up to `--max-candidates`) are circled on the maps in white with a `?`. Most are
+  minor known showers missing from the public catalogue or sporadic fluctuations,
+  but this makes any genuinely new concentration easy to find.
 * Trajectory‑summary columns are read by fixed index from the semicolon‑delimited
   GMN format (RAgeo=7, DECgeo=9, Vgeo=15, Sol=5, …, validated against a live file).
 

@@ -255,12 +255,32 @@ def overlay_maxima(ax, frame, maxima, lambda_sun, min_xsig):
                     color=col, fontsize=8, fontweight="bold", zorder=7)
 
 
+def overlay_candidates(ax, frame, cands, lambda_sun):
+    """Circle unmatched significant peaks (no catalogue association) as shower
+    candidates, in a distinct dashed white style with a '?' marker."""
+    for m in cands:
+        ra, dec = gw.sce_to_radec(m["ll0"], m["bet"], lambda_sun)
+        if frame == "equatorial":
+            plon = np.radians(-wrap180(float(ra)))
+            plat = np.radians(float(dec))
+        else:
+            plon = np.radians(-wrap180(m["ll0"] - 270.0))
+            plat = np.radians(m["bet"])
+        ax.scatter([plon], [plat], s=150, facecolors="none", edgecolors="white",
+                   linewidths=1.0, linestyle=(0, (3, 3)), zorder=6)
+        ax.annotate("?", (plon, plat), textcoords="offset points",
+                    xytext=(6, 6), color="white", fontsize=9,
+                    fontweight="bold", zorder=7)
+
+
 def render_map(frame, plon, plat, xsig_map, maxima, lambda_sun, n_orb,
-               title, subtitle, out_png, label_min_xsig):
+               title, subtitle, out_png, label_min_xsig, candidates=None):
     fig = plt.figure(figsize=(12.8, 7.2), dpi=100)
     ax = fig.add_subplot(111, projection="hammer")
     gw.plot_hammer(ax, plon, plat, xsig_map, vmin=1.0, vmax=150.0)
     overlay_maxima(ax, frame, maxima, lambda_sun, label_min_xsig)
+    if candidates:
+        overlay_candidates(ax, frame, candidates, lambda_sun)
 
     # degree graticule labels (longitude along equator, latitude on meridian)
     lon_deg = np.arange(-150, 151, 30)
@@ -461,6 +481,15 @@ def main(argv=None):
                     help="shower-association radiant threshold [deg] (GMN: 3.0)")
     ap.add_argument("--vg-thr", type=float, default=10.0,
                     help="shower-association velocity threshold [%%] (GMN: 10)")
+    ap.add_argument("--mark-unknown", action="store_true",
+                    help="flag significant peaks with no catalogue match as shower "
+                         "candidates: tag them UNK in the maxlist and circle the "
+                         "strongest ones (white '?') on the maps")
+    ap.add_argument("--candidate-min-xsig", type=float, default=8.0,
+                    help="min xsig for an unmatched peak to be drawn as a "
+                         "candidate on the maps (with --mark-unknown)")
+    ap.add_argument("--max-candidates", type=int, default=8,
+                    help="max unmatched-peak candidates to draw on the maps")
     ap.add_argument("--a-deg", type=float, default=1.0, help="spatial probe [deg]")
     ap.add_argument("--vel-frac", type=float, default=0.05, help="velocity probe")
     ap.add_argument("--vel-step-pct", type=float, default=2.0,
@@ -605,15 +634,26 @@ def main(argv=None):
         print("Labeled showers: " + ", ".join(f"{m['code']}({m['xsig']:.0f})"
                                                for m in labels))
 
+    # unmatched significant peaks = shower candidates (no catalogue association)
+    candidates = None
+    if args.mark_unknown:
+        unk = [m for m in maxima if not m.get("code")
+               and m["xsig"] >= args.candidate_min_xsig]
+        candidates = sorted(unk, key=lambda d: -d["xsig"])[:args.max_candidates]
+        n_unmatched = sum(1 for m in maxima if not m.get("code"))
+        print(f"Unmatched peaks (shower candidates): {n_unmatched} total"
+              f"; {len(candidates)} drawn (xsig >= {args.candidate_min_xsig}).")
+
     out_equ = os.path.join(args.out, f"wav-{tag}-equ.png")
     out_sce = os.path.join(args.out, f"wav-{tag}-sce.png")
     out_max = os.path.join(args.out, f"maxlist-{tag}.txt")
 
     render_map("equatorial", pe_lon, pe_lat, xe, labels, lambda_sun, n_orb,
-               f"GMN Wavelet {tag}", "Equatorial", out_equ, args.label_min_xsig)
+               f"GMN Wavelet {tag}", "Equatorial", out_equ, args.label_min_xsig,
+               candidates=candidates)
     render_map("sce", ps_lon, ps_lat, xs, labels, lambda_sun, n_orb,
                f"GMN Wavelet {tag}", "Sun-Centred Ecliptic", out_sce,
-               args.label_min_xsig)
+               args.label_min_xsig, candidates=candidates)
 
     bg_n = sum(x[0].shape[0] for x in bg_slon) if bg_slon else None
     gw.write_maxlist_full(out_max, maxima, cfg, lambda_sun, n_orb,
@@ -622,7 +662,8 @@ def main(argv=None):
                           min_radiants=args.min_radiants, n_sigma=args.min_xsig,
                           ll0_step=args.step, bet_step=args.step,
                           vg_lo=args.vmin_kms, vg_hi=args.vmax_kms,
-                          vg_pct=args.vel_step_pct, half_width=args.solwidth)
+                          vg_pct=args.vel_step_pct, half_width=args.solwidth,
+                          mark_unknown=args.mark_unknown)
 
     # --- report ------------------------------------------------------------
     print(f"\nDetected {len(maxima)} maxima (xsig >= {args.min_xsig}). Strongest:")

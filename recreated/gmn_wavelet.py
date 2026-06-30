@@ -1052,7 +1052,7 @@ def write_maxlist_full(path, maxima, cfg, lambda_sun, n_radiants, *,
                        min_radiants=10, n_sigma=3.0, bg_nradiants=None,
                        ll0_step=0.2, bet_step=0.2, vg_lo=9.0, vg_hi=72.0,
                        vg_pct=2.0, half_width=0.5, ang_thr=3.0, vg_thr=10.0,
-                       start_sl="", end_sl=""):
+                       start_sl="", end_sl="", mark_unknown=False):
     """Write detected maxima in the GMN maxlist format (mirrors the uploaded
     ``example.txt`` header and columns, including ``wc_s`` and ``eta``).
     ``eta`` is emitted as '-' as GMN does; ``wc_s`` is the single-epoch (self)
@@ -1078,6 +1078,8 @@ def write_maxlist_full(path, maxima, cfg, lambda_sun, n_radiants, *,
             shower = m.get("code", "")
             if m.get("name"):
                 shower = f"{shower} {m['name']}".strip()
+            if not shower and mark_unknown:
+                shower = "UNK  unmatched peak (shower candidate)"
             fh.write(
                 f"{lambda_sun:7.1f} {m['ll0']:6.1f} {m['bet']:6.1f} "
                 f"{float(ra):6.1f} {float(dec):6.1f} {m['vg']:6.1f} "
